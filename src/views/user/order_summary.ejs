@@ -43,7 +43,7 @@
                 <span>Download Invoice</span>
             </button>
         <% } else if (payment.status == "failed") { %>
-            <button class="btn success" style="width: 50%; align-self: center;" onclick="retry_payment('<%- payment.razorpay_order_id %>')">
+            <button class="btn success" style="width: 50%; align-self: center;" onclick='retry_payment(`<%- payment.razorpay_order_id %>`, `<%- JSON.stringify(user) %>`)'>
                 <span>Pay Now</span>
             </button>
         <% } %>
@@ -140,7 +140,7 @@
         pdfMake.createPdf(docDefinition).download(`invoice_${payment.order_number}.pdf`);
     };
 
-    const retry_payment = async (order_id) => {
+    const retry_payment = async (order_id, user) => {
         const response = await fetch('/payment/razorpay/retry-payment', {
             method: 'POST',
             headers: {

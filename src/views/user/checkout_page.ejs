@@ -368,6 +368,7 @@
     const address_form = document.getElementById('address-form');
     let phone;
     let user_id;
+    let user;
     let total_price = 0;
 
     const add_address = () => {
@@ -541,6 +542,10 @@
                     console.log('Payment successful', response);
                     await place_order(orderData.order.id, "success");
                 },
+                prefill: {
+                    name: user?.first_name || "",
+                    email: user?.email || "",
+                },
                 theme: {
                     color: '#3399cc',
                 },
@@ -700,6 +705,7 @@
             phone  = res.user.phone_number;
             total_price = res.total_price;
             user_id = res.user._id;
+            user = res.user;
         }
     };
 

@@ -6,6 +6,8 @@ const submitBtn = document.getElementById("submitBtn");
 const validationRules = {
     required: value => value.trim() !== '' || 'This field is required.',
     min: (value, param) => value.length >= param || `Minimum ${param} characters required.`,
+    minValue: (value, param) => +value >= param || `Minimum value should be ${param}`,
+    maxValue: (value, param) => +value <= param || `Maximum value should be ${param}`,
     nonegative: (value) => value >= 0 || 'Minimum value should not be negative',
     email: value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || 'Invalid email address.',
     uppercase: value => /[A-Z]/.test(value) || 'Must contain at least one uppercase letter.',

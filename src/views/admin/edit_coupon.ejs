@@ -1,124 +1,133 @@
 <%- include('../partials/admin/header.ejs') %>
-<header>
-    <%- include('../partials/admin/navbar.ejs') %>
-</header>
-<div class="row">
-    <%- include('../partials/admin/sidebar.ejs') %>
-    <div class="cover">
-        <form id="edit-coupon-form" style="width: 760px;">
-            <input type="hidden" name="id" id="id" value="<%= coupon._id %>">
-            <div class="col">
-                <label for="name">Coupon Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter Coupon Name" data-validate="required" style="width: 100%;" value="<%= coupon.name %>">
+    <header>
+        <%- include('../partials/admin/navbar.ejs') %>
+    </header>
+    <div class="row">
+        <%- include('../partials/admin/sidebar.ejs') %>
+            <div class="cover">
+                <form id="edit-coupon-form" style="width: 760px;">
+                    <input type="hidden" name="id" id="id" value="<%= coupon._id %>">
+                    <div class="col">
+                        <label for="name">Coupon Name</label>
+                        <input type="text" id="name" name="name" placeholder="Enter Coupon Name"
+                            data-validate="required" style="width: 100%;" value="<%= coupon.name %>">
+                        <span id="name_error" class="form-error"></span>
+                    </div>
+                    <div class="col">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="4" placeholder="Enter Coupon description..."
+                            data-validate="required"><%= coupon.description %></textarea>
+                        <span id="description_error" class="form-error"></span>
+                    </div>
+
+                    <div class="row" style="gap: 80px;">
+                        <div class="col">
+                            <label for="activation">Activation Date</label>
+                            <input type="date" id="activation" name="activation" placeholder="DD-MM-YYYY"
+                                style="width: 300px; padding: 0 10px;" data-validate="required">
+                            <span id="activation_error" class="form-error"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="expiry">Expiry Date</label>
+                            <input type="date" id="expiry" name="expiry" placeholder="DD-MM-YYYY"
+                                style="width: 300px; padding: 0 10px;" data-validate="required">
+                            <span id="expiry_error" class="form-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="row" style="gap: 80px;">
+                        <div class="col">
+                            <label for="discount">Discount Rate</label>
+                            <input type="number" name="discount" id="discount"
+                                data-validate="required|minValue:0|maxValue:100" placeholder="Enter amount"
+                                style="width: 300px;" value="<%= coupon.discount %>">
+                            <span id="discount_error" class="form-error"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="status">Status</label>
+                            <select id="status" name="status" style="width: 300px;" data-validate="required">
+                                <option value="true" <%=coupon.status ? 'selected' : '' %>>Active</option>
+                                <option value="false" <%=!coupon.status ? 'selected' : '' %>>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row" style="gap: 80px;">
+                        <div class="col">
+                            <label for="min_amount">Minimum Amount</label>
+                            <div class="currency-input">
+                                <span class="currency-symbol">&#8377;</span>
+                                <input type="number" name="min_amount" id="min_amount" class="purchase-input"
+                                    placeholder="Minimum purchase amount" style="border: 0;" data-validate="required"
+                                    value="<%= coupon.min_amount %>" />
+                            </div>
+                            <span id="min_amount_error" class="form-error"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="max_amount">Maximum Amount</label>
+                            <div class="currency-input">
+                                <span class="currency-symbol">&#8377;</span>
+                                <input type="number" name="max_amount" id="max_amount" class="purchase-input"
+                                    placeholder="Maximum purchase amount" style="border: 0;" data-validate="required"
+                                    value="<%= coupon.max_amount %>" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="gap: 80px;">
+                        <div class="col">
+                            <label for="limit">Usage Limit</label>
+                            <input type="number" id="limit" name="limit" placeholder="Enter limit" style="width: 300px;"
+                                data-validate="required" value="<%= coupon.limit %>">
+                            <span id="limit_error" class="form-error"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="type">Usage Type</label>
+                            <select id="type" name="type" style="width: 300px;" data-validate="required">
+                                <option value="single">Single</option>
+                                <option value="multiple">Multiple</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: row; gap: 50px; margin-top: 60px;">
+                        <button class="button" id="submit-btn" type="submit">Save Coupon</button>
+                        <a href="/admin/coupons" class="button-2">Cancel</a>
+                    </div>
+                </form>
             </div>
-            <div class="col">
-                <label for="description">Description</label>
-                <textarea id="description" name="description" rows="4"placeholder="Enter Coupon description..." data-validate="required"><%= coupon.description %></textarea>
-            </div>
-
-            <div class="row" style="gap: 80px;">
-                <div class="col">
-                    <label for="activation">Activation Date</label>
-                    <input type="date" id="activation" name="activation" placeholder="DD-MM-YYYY" style="width: 300px; padding: 0 10px;" data-validate="required">
-                </div>
-
-                <div class="col">
-                    <label for="expiry">Expiry Date</label>
-                    <input type="date" id="expiry" name="expiry" placeholder="DD-MM-YYYY" style="width: 300px; padding: 0 10px;" data-validate="required">
-                </div>
-            </div>
-
-            <div class="row" style="gap: 80px;">
-                <div class="col">
-                    <label for="discount">Discount Rate</label>
-                    <input type="number" name="discount" id="discount" data-validate="required" placeholder="Enter amount" style="width: 300px;" value="<%= coupon.discount %>">
-                </div>
-
-                <div class="col">
-                    <label for="status">Status</label>
-                    <select id="status" name="status" style="width: 300px;" data-validate="required">
-                        <option value=true>Active</option>
-                        <option value=false>Inactive</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row" style="gap: 80px;">
-                <div class="col">
-                    <label for="min_amount">Minimum Amount</label>
-                    <div class="currency-input">
-                        <span class="currency-symbol">&#8377;</span>
-                        <input
-                          type="number"
-                          name="min_amount" 
-                          id="min_amount"
-                          class="purchase-input"
-                          placeholder="Minimum purchase amount"
-                          style="border: 0;"
-                          data-validate="required"
-                          value="<%= coupon.min_amount %>"
-                        />
-                      </div>
-                </div>
-
-                <div class="col">
-                    <label for="max_amount">Maximum Amount</label>
-                    <div class="currency-input">
-                        <span class="currency-symbol">&#8377;</span>
-                        <input
-                          type="number"
-                          name="max_amount" 
-                          id="max_amount"
-                          class="purchase-input"
-                          placeholder="Maximum purchase amount"
-                          style="border: 0;"
-                          data-validate="required"
-                          value="<%= coupon.max_amount %>"
-                        />
-                      </div>
-                </div>
-            </div>
-
-            <div class="row" style="gap: 80px;">
-                <div class="col">
-                    <label for="limit">Usage Limit</label>
-                    <input type="number" id="limit" name="limit" placeholder="Enter limit" style="width: 300px;" data-validate="required" value="<%= coupon.limit %>">
-                </div>
-
-                <div class="col">
-                    <label for="type">Usage Type</label>
-                    <select id="type" name="type" style="width: 300px;" data-validate="required">
-                        <option value="single">Single</option>
-                        <option value="multiple">Multiple</option>
-                    </select>
-                </div>
-            </div>
-
-            <div style="display: flex; flex-direction: row; gap: 50px; margin-top: 60px;">
-                <button class="button" id="submit-btn" type="submit">Save Coupon</button>
-                <a href="/admin/coupons" class="button-2">Cancel</a>
-            </div>
-        </form>
     </div>
-</div>
-<script>
-    const activationPicker = flatpickr("#activation", {
-        dateFormat: "d-M-Y",
-        minDate: "today",
-        defaultDate: new Date("<%= coupon.activation.toISOString().split('T')[0] %>"), 
-        onChange: function (selectedDates) {
-            const activationDate = selectedDates[0];
-            if (activationDate) {
-                expiryPicker.set("minDate", new Date(activationDate.getTime() + 24 * 60 * 60 * 1000));
-                expiryPicker.setDate(null);
+    <script>
+        const activationPicker = flatpickr("#activation", {
+            dateFormat: "d-M-Y",
+            minDate: "today",
+            defaultDate: "<%= coupon.activation.toISOString() %>",
+            onChange: function (selectedDates) {
+                const activationDate = selectedDates[0];
+                if (activationDate) {
+                    expiryPicker.set("minDate", new Date(activationDate.getTime() + 24 * 60 * 60 * 1000));
+                    expiryPicker.setDate(null);
+                }
             }
-        }
-    });
+        });
 
-    const expiryPicker = flatpickr("#expiry", {
-        dateFormat: "d-M-Y",
-        minDate: "today",
-        defaultDate: new Date("<%= coupon.expiry.toISOString().split('T')[0] %>"),
-    });
-  </script>
-<%- include('../partials/admin/footer.ejs') %>
+        const expiryPicker = flatpickr("#expiry", {
+            dateFormat: "d-M-Y",
+            minDate: "today",
+            defaultDate: "<%= coupon.expiry.toISOString() %>",
+        });
+
+        document.getElementById("edit-coupon-form").addEventListener("submit", function (e) {
+            const min = parseFloat(document.getElementById("min_amount").value);
+            const max = parseFloat(document.getElementById("max_amount").value);
+            if (min > max) {
+                e.preventDefault();
+                alert("Minimum amount cannot be greater than maximum amount");
+            }
+        });
+    </script>
+    <%- include('../partials/admin/footer.ejs') %>

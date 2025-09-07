@@ -512,16 +512,21 @@
         }
     };
 
-    const razorpay_payment = async () => {
+    const razorpay_payment = async (carts) => {
         try {
             let price = document.getElementById("price").value;
             const response = await fetch('/payment/razorpay/order', { 
                 method: 'POST',
                 body: new URLSearchParams({
                     amount: price,
+                    carts: JSON.stringify(carts)
                 })
             });
             const orderData = await response.json();
+
+            if (!orderData.success) {
+                return alert_error(orderData.message);
+            }
 
             const options = {
                 key: orderData.order.key, 
@@ -539,7 +544,6 @@
                     wallet: true,
                 },
                 handler: async function (response) {
-                    console.log('Payment successful', response);
                     await place_order(orderData.order.id, "success");
                 },
                 prefill: {
@@ -608,7 +612,7 @@
         }
 
         if (payment_method == "razorpay" && razorpay_order_id == "") {
-            return razorpay_payment();
+            return razorpay_payment(carts);
         }
 
         if (coupon_discount) {

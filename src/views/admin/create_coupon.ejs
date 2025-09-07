@@ -9,28 +9,40 @@
             <div class="col">
                 <label for="name">Coupon Name</label>
                 <input type="text" id="name" name="name" placeholder="Enter Coupon Name" data-validate="required" style="width: 100%;">
+                <span id="name_error" class="form-error"></span>
             </div>
             <div class="col">
                 <label for="description">Description</label>
                 <textarea id="description" name="description" rows="4"placeholder="Enter Coupon description..." data-validate="required"></textarea>
+                <span id="description_error" class="form-error"></span>
             </div>
 
             <div class="row" style="gap: 80px;">
                 <div class="col">
                     <label for="activation">Activation Date</label>
                     <input type="date" id="activation" name="activation" placeholder="DD-MM-YYYY" style="width: 300px; padding: 0 10px;" data-validate="required">
+                    <span id="activation_error" class="form-error"></span>
                 </div>
 
                 <div class="col">
                     <label for="expiry">Expiry Date</label>
                     <input type="date" id="expiry" name="expiry" placeholder="DD-MM-YYYY" style="width: 300px; padding: 0 10px;" data-validate="required">
+                    <span id="expiry_error" class="form-error"></span>
                 </div>
             </div>
 
             <div class="row" style="gap: 80px;">
                 <div class="col">
                     <label for="discount">Discount Rate</label>
-                    <input type="number" name="discount" id="discount" data-validate="required" placeholder="Enter amount" style="width: 300px;">
+                    <input 
+                        type="number" 
+                        name="discount" 
+                        id="discount" 
+                        data-validate="required|minValue:0|maxValue:100" 
+                        placeholder="Enter amount" 
+                        style="width: 300px;"
+                    >
+                    <span id="discount_error" class="form-error"></span>
                 </div>
 
                 <div class="col">
@@ -57,7 +69,8 @@
                           style="border: 0;"
                           data-validate="required"
                         />
-                      </div>
+                    </div>
+                      <span id="min_amount_error" class="form-error"></span>
                 </div>
 
                 <div class="col">
@@ -73,7 +86,8 @@
                           style="border: 0;"
                           data-validate="required"
                         />
-                      </div>
+                    </div>
+                    <span id="max_amount_error" class="form-error"></span>
                 </div>
             </div>
 
@@ -81,6 +95,7 @@
                 <div class="col">
                     <label for="limit">Usage Limit</label>
                     <input type="number" id="limit" name="limit" placeholder="Enter limit" style="width: 300px;" data-validate="required">
+                    <span id="limit_error" class="form-error"></span>
                 </div>
 
                 <div class="col">

@@ -267,9 +267,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let form = document.getElementById("offer-form");
         let formdata = new URLSearchParams();
         Array.from(form.elements).forEach((input) => {
-            if (input.value.trim() == "" && input.type != "submit") {
-                alert_error("Please fill out all required fields")
-                return false;
+            if (!handleValidation(input)) {
+                isValid = false;
             } else {
                 if (input.id == "activation" || input.id == "expiry") {
                     let date = new Date(input.value).toISOString();
@@ -279,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-
+        if (!isValid) return;
         let req = await fetch("/admin/create-offer", {
             method: "POST",
             body: formdata,

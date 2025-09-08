@@ -1,11 +1,12 @@
 const bcrypt = require('bcryptjs');
 const admins = require('../../models/admin_model');
 const users = require('../../models/user_model');
-const order_model = require('../../models/order_model');
-const payment_model = require('../../models/payment_model');
+const orderModel = require('../../models/order_model');
+const paymentModel = require('../../models/payment_model');
+const httpStatus = require("../../utils/httpStatus");
 
 
-const admin_login = async (req, res) => {
+const adminLogin = async (req, res) => {
     const {email, password} = req.body;
     try {
         const admin = await admins.findOne({email});
@@ -42,7 +43,7 @@ const admin_login = async (req, res) => {
     }
 }
 
-const load_user = async (req, res) => {
+const loadUser = async (req, res) => {
     return res.render(
         "admin/customers", {
             title: "Customers", 
@@ -51,12 +52,12 @@ const load_user = async (req, res) => {
     );
 }
 
-const get_users = async (req, res) => {
+const getUsers = async (req, res) => {
     const { page = 1, limit = 10, email = "" } = req.body;
     const search_email = email != "" ? {email: {$regex: email}}: {};
     const all_users = await users.find(search_email).sort({createdAt: -1}).skip((page - 1) * limit).limit(Number(limit));
     const total = await users.countDocuments(search_email);
-    return res.status(200).json(
+    return res.status(httpStatus.OK).json(
         {
             data: all_users,
             totalPages: Math.ceil(total / limit),
@@ -66,7 +67,7 @@ const get_users = async (req, res) => {
     );
 }
 
-const admin_logout = (req, res) => {
+const adminLogout = (req, res) => {
     if (req.session.user) {
         res.clearCookie('connect.sid');
         delete req.session.admin;
@@ -81,13 +82,13 @@ const admin_logout = (req, res) => {
     }
 )};
 
-const edit_user = async (req, res) => {
+const editUser = async (req, res) => {
     try {
         const data = req.body;
         if (data) {
             const exist = await users.findOne({email: data.newemail});
             if (exist && data.newemail !== data.email) {
-                return res.status(400).json({success: false, message: "Email already exists"});
+                return res.status(httpStatus.BAD_REQUEST).json({success: false, message: "Email already exists"});
             }
             await users.updateOne(
                 {email: data.email}, 
@@ -101,29 +102,29 @@ const edit_user = async (req, res) => {
                     }
                 }
             )
-            return res.status(200).json({success: true, message: "User updated successfully"});
+            return res.status(httpStatus.OK).json({success: true, message: "User updated successfully"});
         }
     } catch (err) {
         console.error("Error in edit user:", err);
-        return res.status(500).json({success: false, message: "An error occured"});
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({success: false, message: "An error occured"});
     }
 }
 
-const delete_user = async (req, res) => {
+const deleteUser = async (req, res) => {
     try {
         const { id } = req.body;
         if (id) {
             await users.deleteOne({_id: id});
-            return res.status(200).json({success: true, message: "User deleted successfully"});
+            return res.status(httpStatus.OK).json({success: true, message: "User deleted successfully"});
         }
-        return res.status(400).json({success: false, message: "Invalid request"});
+        return res.status(httpStatus.BAD_REQUEST).json({success: false, message: "Invalid request"});
     } catch (err) {
         console.error("Error in delete user:", err);
-        return res.status(500).json({success: false, message: "An error occured"});
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({success: false, message: "An error occured"});
     }
 }
 
-const get_reports = async (req, res) => {
+const getReports = async (req, res) => {
     let { start_date, end_date } = req.body;
     start_date = new Date(start_date);
     end_date = new Date(end_date);
@@ -168,7 +169,7 @@ const get_reports = async (req, res) => {
         }
         ]);
     
-    const sales_data = await payment_model.aggregate([
+    const sales_data = await paymentModel.aggregate([
         {
             $match: {
                 status: "success",
@@ -206,7 +207,7 @@ const get_reports = async (req, res) => {
         }
     ]);
 
-    const order_data = await order_model.aggregate([
+    const order_data = await orderModel.aggregate([
         {
             $match: {
                 status: { $in: ["delivered"] },
@@ -231,7 +232,7 @@ const get_reports = async (req, res) => {
         }
     ])
 
-    const orders = await order_model.aggregate([
+    const orders = await orderModel.aggregate([
         {
             $match: {
                 status: { $in: ["delivered"] },
@@ -321,13 +322,13 @@ const get_reports = async (req, res) => {
             }
         }
     ]);
-    return res.json({success: true, sales_data, user_data, order_data, orders});
+    return res.status(httpStatus.OK).json({success: true, sales_data, user_data, order_data, orders});
 };
 
 const get_product_report = async (start, end) => {
     start = new Date(new Date(start).setUTCHours(0, 0, 0, 0));
     end = new Date(new Date(end).setUTCHours(23, 59, 59, 999));
-    return await order_model.aggregate([
+    return await orderModel.aggregate([
         {
             $match: {
                 status: { $in: ["shipped", "delivered", "returned"] },
@@ -368,7 +369,7 @@ const get_product_report = async (start, end) => {
 };
 
 const get_category_report = async (start, end) => {
-    return await order_model.aggregate([
+    return await orderModel.aggregate([
         {
             $match: {
                 status: { $in: ["shipped", "delivered", "returned"] },
@@ -415,7 +416,7 @@ const get_category_report = async (start, end) => {
     ]);
 };
 
-const get_sales_report = async (req, res) => {
+const getSalesReport = async (req, res) => {
     let { method, start = null, end = null } = req.body;
     const sales_report =
             method === "product"
@@ -423,12 +424,12 @@ const get_sales_report = async (req, res) => {
                 : await get_category_report(start, end);
     
     
-    const payment_report = await payment_model.find({createdAt: {$gte: start, $lte: end}}, {coupon_discount: 1});
-    return res.json({sales: sales_report, coupons: payment_report});
+    const payment_report = await paymentModel.find({createdAt: {$gte: start, $lte: end}}, {coupon_discount: 1});
+    return res.status(httpStatus.OK).json({sales: sales_report, coupons: payment_report});
 };
 
 
-const get_ledger_book = async (req, res) => {
+const getLedgerBook = async (req, res) => {
     try {
         const { startDate, endDate } = req.body;
         const filter = {};
@@ -437,12 +438,12 @@ const get_ledger_book = async (req, res) => {
             filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
         }
 
-        const orders = await order_model.find(filter)
+        const orders = await orderModel.find(filter)
             .populate('user_id', 'name email')
             .populate('product_id', 'name price')
             .populate('payment', 'method status amount');
 
-        const payments = await payment_model.find(filter)
+        const payments = await paymentModel.find(filter)
             .populate('user_id', 'name email')
             .populate('orders', 'order_number');
 
@@ -467,21 +468,21 @@ const get_ledger_book = async (req, res) => {
         const total_revenue = payments.reduce((sum, payment) => sum + payment.amount, 0);
         const total_orders = orders.length;
 
-        res.json({ success: true, ledger, summary: { total_revenue, total_orders } });
+        res.status(httpStatus.OK).json({ success: true, ledger, summary: { total_revenue, total_orders } });
     } catch (error) {
         console.error('Error fetching ledger book:', error);
-        return res.status(500).json({ success: false, message: 'Server Error' });
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server Error' });
     }
 }
 
 module.exports = { 
-    admin_login, 
-    load_user, 
-    admin_logout, 
-    edit_user, 
-    delete_user,
-    get_reports,
-    get_sales_report,
-    get_ledger_book,
-    get_users
+    adminLogin, 
+    loadUser, 
+    adminLogout, 
+    editUser, 
+    deleteUser,
+    getReports,
+    getSalesReport,
+    getLedgerBook,
+    getUsers
 };

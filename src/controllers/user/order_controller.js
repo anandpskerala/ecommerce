@@ -7,9 +7,13 @@ const payment_model = require('../../models/payment_model');
 const order_model = require('../../models/order_model');
 const wallet_model = require('../../models/wallet_model');
 const return_model = require('../../models/return_model');
+const httpStatus = require("../../utils/httpStatus");
+
+const time = require('../../utils/time');
+const currency = require('../../utils/currency');
 
 
-const add_order = async (req, res) => {
+const addOrder = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -19,20 +23,20 @@ const add_order = async (req, res) => {
         if (!carts || !payment_method || !address) {
             await session.abortTransaction();
             session.endSession();
-            return res.json({ success: false, message: "All fields are required" });
+            return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "All fields are required" });
         }
 
         const user = await user_model.findById(req.session.user.id).session(session);
         if (!user) {
             await session.abortTransaction();
             session.endSession();
-            return res.json({ success: false, message: "User not found" });
+            return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "User not found" });
         }
 
         if (payment_method === "cod" && price > 1000) {
             await session.abortTransaction();
             session.endSession();
-            return res.json({ success: false, message: "COD is not allowed above ₹1000" });
+            return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "COD is not allowed above ₹1000" });
         }
 
         if (payment_method === "wallet") {
@@ -40,7 +44,7 @@ const add_order = async (req, res) => {
             if (!wallet || wallet.balance < price) {
                 await session.abortTransaction();
                 session.endSession();
-                return res.json({ success: false, message: "Insufficient wallet balance" });
+                return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "Insufficient wallet balance" });
             }
 
             wallet.balance -= price;
@@ -72,7 +76,7 @@ const add_order = async (req, res) => {
         const payment = await payment_data.save({ session });
 
         let orders = [];
-        let computedTotal = price > 1000? 503: 3;
+        let computedTotal = price > 1000 ? 503 : 3;
         const parsedCarts = JSON.parse(carts);
 
         for (const cartId of parsedCarts) {
@@ -125,7 +129,7 @@ const add_order = async (req, res) => {
             if (!updatedProduct) {
                 await session.abortTransaction();
                 session.endSession();
-                return res.json({ success: false, message: "Insufficient stock" });
+                return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "Insufficient stock" });
             }
 
             const order_item = new order_model({
@@ -152,7 +156,7 @@ const add_order = async (req, res) => {
         if (Number(computedTotal) !== Number(price)) {
             await session.abortTransaction();
             session.endSession();
-            return res.json({ success: false, message: "Price mismatch. Please refresh and try again." });
+            return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "Price mismatch. Please refresh and try again." });
         }
 
         await payment_model.updateOne(
@@ -167,7 +171,7 @@ const add_order = async (req, res) => {
         await session.commitTransaction();
         session.endSession();
 
-        return res.status(200).json({
+        return res.status(httpStatus.OK).json({
             success: true,
             message: "Order placed successfully",
             order_id: payment._id,
@@ -177,7 +181,7 @@ const add_order = async (req, res) => {
         console.error("Error placing order:", error);
         await session.abortTransaction();
         session.endSession();
-        return res.status(500).json({
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "An error occurred while placing the order",
         });
@@ -185,18 +189,18 @@ const add_order = async (req, res) => {
 };
 
 
-const cancel_order = async (req, res) => {
+const cancelOrder = async (req, res) => {
     const { order_id, reason } = req.body;
     const user = await user_model.findOne({ _id: req.session.user.id });
     if (!user) {
-        return res.json({ success: false, message: `User not found` });
+        return res.status(httpStatus.NOT_FOUND).json({ success: false, message: `User not found` });
     }
     const order = await order_model.findOne({ _id: order_id, user_id: user._id });
     if (!order) {
-        return res.json({ success: false, message: `Order not found` });
+        return res.status(httpStatus.NOT_FOUND).json({ success: false, message: `Order not found` });
     }
     if (order.status !== "processing") {
-        return res.json({ success: false, message: "Order can only be cancelled in processing state" });
+        return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "Order can only be cancelled in processing state" });
     }
     const payment = await payment_model.findOne({ _id: order.payment });
     const wallet = await wallet_model.findOne({ user_id: user._id });
@@ -223,27 +227,27 @@ const cancel_order = async (req, res) => {
     });
     await product_model.updateOne({ _id: order.product_id }, { $set: { variants: variant_data } })
     await order_model.updateOne({ _id: order._id }, { $set: { status: 'cancelled', reason } });
-    return res.status(200).json({ success: true, message: "Order cancelled successfully" });
+    return res.status(httpStatus.OK).json({ success: true, message: "Order cancelled successfully" });
 };
 
-const return_order = async (req, res) => {
+const returnOrder = async (req, res) => {
     const { order_id, reason } = req.body;
     const user = await user_model.findOne({ _id: req.session.user.id });
     if (!user) {
-        return res.json({ success: false, message: `User not found` });
+        return res.status(httpStatus.NOT_FOUND).json({ success: false, message: `User not found` });
     }
     const order = await order_model.findOne({ _id: order_id, user_id: user._id });
     if (!order) {
-        return res.json({ success: false, message: `Order not found` });
+        return res.status(httpStatus.NOT_FOUND).json({ success: false, message: `Order not found` });
     }
     if (order.status !== "delivered") {
-        return res.json({ success: false, message: "Order can only be returned after delivery" });
+        return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "Order can only be returned after delivery" });
     }
 
     const payment = await payment_model.findOne({ _id: order.payment });
     const exists = await return_model.findOne({ order_id: order._id });
     if (exists) {
-        return res.json({ success: false, message: "Return request already sent for this order" });
+        return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "Return request already sent for this order" });
     }
     const return_data = new return_model({
         user_id: user._id,
@@ -252,12 +256,100 @@ const return_order = async (req, res) => {
         reason: reason,
     });
     await return_data.save();
-    return res.status(200).json({ success: true, message: "Return request sent successfully" });
+    return res.status(httpStatus.OK).json({ success: true, message: "Return request sent successfully" });
 };
+
+const orderPage = async (req, res) => {
+    try {
+        const error_message = req.session.error || null;
+        req.session.error = null;
+        const { page = 1, limit = 10 } = req.query;
+        const orders = await order_model.find({ user_id: req.session.user.id }).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit)).populate('payment');
+        const returns = await return_model.find({ user_id: req.session.user.id });
+        const total = await order_model.countDocuments({ user_id: req.session.user.id });
+        return res.render('user/order_page', {
+            title: "Orders",
+            cart_option: "page",
+            error_message,
+            orders,
+            time,
+            totalPages: Math.ceil(total / limit),
+            currentPage: Number(page),
+            currency,
+            returns
+        });
+    } catch (err) {
+        console.log(err);
+        return res.redirect('/error');
+    }
+}
+
+
+const pendingOrders = async (req, res) => {
+    try {
+        const error_message = req.session.error || null;
+        req.session.error = null;
+        const { page = 1, limit = 10 } = req.query;
+        const orders = await order_model.find({ user_id: req.session.user.id }).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit)).populate('payment');
+        const returns = await return_model.find({ user_id: req.session.user.id });
+        const total = orders.reduce((acc, curr) => {
+            if (curr.payment && curr.payment.status == "failed") {
+                acc++;
+            }
+            return acc;
+        }, 0)
+        return res.render('user/pending_orders', {
+            title: "Pending Orders",
+            cart_option: "page",
+            error_message,
+            orders,
+            time,
+            totalPages: Math.ceil(total / limit),
+            currentPage: Number(page),
+            currency,
+            returns
+        });
+    } catch (err) {
+        console.log(err);
+        return res.redirect('/error');
+    }
+}
+
+const orderSummary = async (req, res) => {
+    const { id } = req.params;
+    const payment = await payment_model.findOne({ _id: id });
+    if (!payment) {
+        return res.redirect("/user/orders");
+    }
+    let orders = [];
+    for (const order of payment.orders) {
+        const product_order = await order_model.findOne({ _id: order });
+        if (product_order) orders.push(product_order);
+    }
+    const user = await user_model.findOne({ _id: req.session.user.id });
+    let address = null;
+    if (orders.length > 0 && orders[0].address) {
+        address = user.addresses.find(v => v._id.toString() === orders[0].address.toString());
+    }
+    return res.render('user/order_summary', { title: "Order Summary", cart_option: "page", payment, orders, time, user, address, currency });
+}
+
+const orderResult = async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.redirect("/user/orders");
+    }
+    const payment = await payment_model.findOne({ _id: id });
+    return res.render('user/order_result', { title: "Order", cart_option: "page", session: req.session, payment });
+}
 
 
 module.exports = {
-    add_order,
-    cancel_order,
-    return_order,
+    addOrder,
+    cancelOrder,
+    returnOrder,
+    orderPage,
+    pendingOrders,
+    orderSummary,
+    orderResult
 };

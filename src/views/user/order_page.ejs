@@ -47,8 +47,8 @@
                         <a href="/user/order-summary/<%= order.payment._id %>" class="btn view-item">Order details</a>
                         <button class="btn cancel" onclick="cancel_order('<%= order._id %>')">Cancel</button>
                       <% } else if (order.status == "cancelled") { %>
-                        <span class="btn hollow">&nbsp;&nbsp;</span>
-                        <span class="btn hollow">&nbsp;&nbsp;</span>
+                        <a href="/user/order-summary/<%= order.payment._id %>" class="btn view-item">Order details</a>
+                        <span class="btn hollow">&nbsp;</span>
                       <% } else if (order.status == "returned") { %>
                         <a href="/user/order-summary/<%= order.payment._id %>" class="btn view-item">Order details</a>
                         <span class="btn hollow">&nbsp;</span>

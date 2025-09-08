@@ -35,7 +35,7 @@
                 <button class="cart-plus" id="cart-plus-<%= index %>" aria-label="Increase quantity" style="border-top-right-radius: 6px; border-bottom-right-radius: 6px; border-left: 1px solid #ccc;">+</button>
               </div>
             </div>
-            <span>$<%= cart.price %>.00</span>
+            <span><%= currency.format(cart.price) %></span>
           </div>
         </div>
       <% }); %>

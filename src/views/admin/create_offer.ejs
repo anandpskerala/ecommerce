@@ -9,6 +9,7 @@
             <div class="col">
                 <label for="name">Offer Name</label>
                 <input type="text" id="name" name="name" style="width: 830px;" placeholder="Enter offer name (e.g., Dhamaka2024)" data-validate="required">
+                <span class="form-error" id="name-error"></span>
             </div>
             <div class="col">
                 <label for="image">Offer Applicable</label>
@@ -20,23 +21,27 @@
             <div class="col">
                 <label for="description">Description</label>
                 <textarea name="description" id="description" style="width: 830px; height: 95px;" placeholder="Type here" data-validate="required"></textarea>
+                <span class="form-error" id="description-error"></span>
             </div>
             <div class="row" style="gap: 80px;">
                 <div class="col">
                     <label for="activation">Activation Date</label>
                     <input type="date" id="activation" name="activation" placeholder="dd-mm-yyyy" style="width: 300px; padding: 0 10px;" data-validate="required">
+                    <span class="form-error" id="activation-error"></span>
                 </div>
 
                 <div class="col">
                     <label for="expiry">Expiry Date</label>
                     <input type="date" id="expiry" name="expiry" placeholder="dd-mm-yyyy" style="width: 300px; padding: 0 10px;" data-validate="required">
+                    <span class="form-error" id="expiry-error"></span>
                 </div>
             </div>
 
             <div class="row" style="gap: 80px;">
                 <div class="col">
                     <label for="discount">Discount Rate</label>
-                    <input type="number" name="discount" id="discount" style="width: 300px;" data-validate="required">
+                    <input type="number" name="discount" id="discount" style="width: 300px;" data-validate="required|minValue:0|maxValue:100">
+                    <span class="form-error" id="discount-error"></span>
                 </div>
 
                 <div class="col">
@@ -53,6 +58,7 @@
                           data-validate="required"
                         />
                       </div>
+                      <span class="form-error" id="min_amount-error"></span>
                 </div>
             </div>
             <div style="display: flex; flex-direction: row; gap: 10px; margin-top: 60px;">

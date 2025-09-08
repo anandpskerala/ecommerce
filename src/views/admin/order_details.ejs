@@ -1,104 +1,187 @@
 <%- include('../partials/admin/header.ejs') %>
-<header>
-    <%- include('../partials/admin/navbar.ejs') %>
-</header>
-<div class="row">
-    <%- include('../partials/admin/sidebar.ejs') %>
-    <div class="cover" style="gap: 20px;">
-        <div class="cover-head" style="margin-bottom: 20px;">
-            <h2>Order Details</h2>
-        </div>
+    <header>
+        <%- include('../partials/admin/navbar.ejs') %>
+    </header>
 
-        <div class="row" style="align-items: center; gap: 80px;">
-            <img src="/images/<%= order.image %>" alt="Order image" style="width: 100px; height: 100px; object-fit: cover;">
-            <div class="col">
-                <span style="max-width: 360px;"><strong><%= order.name %></strong></span>
-                <span><strong>Price : &#8377;<%= currency.parse_currency(order.price, 2) %> </strong></span>
-                <span><strong>QTY : <%= order.quantity %></strong></span>
-                <span class="row" style="align-items: center; gap: 10px;">
-                    <strong><span>Color : </span></strong>
-                    <span class="color-option" style="background-color: <%= order.color %>; width: 20px; height: 20px"></span>
-                </span>
-                <span>
-                    <strong>Order Date : </strong>
-                    <%= time.formatDate(order.createdAt) %>
-                </span>
-                <span>
-                    <strong>Status : </strong>
-                    <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
-                </span>
-                <% if (order.payment) { %>
-                    <span>
-                        <strong>Payment Status : </strong>
-                        <%= order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1) %>
-                    </span>
-                <% } %>
-            </div>
-            <div class="col" style="gap: 20px;">
-                <span>
-                    <strong>Order ID : </strong>
-                    <span style="font-size: 14px;"><%= order.order_number %></span>
-                </span>
-                <span><strong>Set Order Status</strong></span>
-                <select name="status" id="order-status" class="status-selection">
-                    <option value="processing" <%= order.status == 'processing'? 'selected': '' %>>Processing</option>
-                    <option value="shipped" <%= order.status == 'shipped'? 'selected': '' %>>Shipped</option>
-                    <option value="delivered" <%= order.status == 'delivered'? 'selected': '' %>>Delivered</option>
-                    <option value="cancelled" <%= order.status == 'cancelled'? 'selected': '' %>>Cancelled</option>
-                </select>
+    <div class="row">
+        <%- include('../partials/admin/sidebar.ejs') %>
 
-                <button class="action-btn action-edit" style="padding: 10px 0;" onclick="set_status('<%= order._id %>')">Set Status</button>
+            <div class="cover" style="gap: 20px; padding: 20px;">
+
+                <div class="cover-head" style="margin-bottom: 20px;">
+                    
+                    <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 5px;">
+                        <h2 style="margin-bottom: 10px;">Order Details</h2>
+                        <h3>Payment Information</h3>
+                        <% if (order.payment) { %>
+                            <p><strong>Method:</strong>
+                                <%= order.payment.method %>
+                            </p>
+                            <p><strong>Status:</strong>
+                                <%= order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1) %>
+                            </p>
+                            <p><strong>Total Paid:</strong>
+                                <%= currency.format(order.payment.amount) %>
+                            </p>
+                            <% } else { %>
+                                <p><em>No payment information available</em></p>
+                            <% } %>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <p><strong>Order ID:</strong>
+                            <%= order.order_number %>
+                        </p>
+                        <p><strong>Order Date:</strong>
+                            <%= time.formatDate(order.createdAt) %>
+                        </p>
+                        <p><strong>Status:</strong>
+                            <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                        </p>
+                        <% if (order.cancellationReason) { %>
+                            <p><strong>Cancellation Reason:</strong>
+                                <%= order.cancellationReason %>
+                            </p>
+                        <% } %>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h3>Products</h3>
+                    <table border="1" cellspacing="0" cellpadding="8" style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: #f4f4f4; color: black;">
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Color</th>
+                                <th>Unit Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <img src="/images/<%= order.image %>" alt="Product image"
+                                        style="width: 60px; height: 60px; object-fit: cover;">
+                                </td>
+                                <td>
+                                    <%= order.name %>
+                                </td>
+                                <td>
+                                    <% if (order.color) { %>
+                                        <span class="color-option"
+                                            style="background-color: <%= order.color %>; width: 20px; height: 20px; display:inline-block; border:1px solid #ccc;"></span>
+                                    <% } else { %> N/A <% } %>
+                                </td>
+                                <td>
+                                    <%= currency.format(order.price) %>
+                                </td>
+                                <td>
+                                    <%= order.quantity %>
+                                </td>
+                                <td>
+                                    <%= currency.format(order.price * order.quantity) %>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 10px; text-align: right;">
+                        <strong>Subtotal:</strong>
+                        <%= currency.format(order.price) %><br>
+                            <strong>Discount:</strong> -<%= currency.format(order.discount || 0) %><br>
+                                <strong>Tax:</strong>
+                                <%= currency.format(order.tax || 3) %><br>
+                                    <strong>Shipping:</strong>
+                                    <%= currency.format(order.price > 1000? 500: 0) %><br>
+                                        <strong>Grand Total:</strong>
+                                        <%= currency.format(order.payment.amount) %>
+                    </p>
+                </div>
+
+                <!-- 👤 Customer Info -->
+                <div style="margin-bottom: 20px;">
+                    <h3>Customer Information</h3>
+                    <p><strong>Name:</strong>
+                        <%= order.user_id.first_name + ' ' + order.user_id.last_name %>
+                    </p>
+                    <p><strong>Email:</strong>
+                        <%= order.user_id.email %>
+                    </p>
+                    <p><strong>Phone:</strong>
+                        <%= order.user_id.phone_number %>
+                    </p>
+                </div>
+
+                <!-- 🏠 Shipping & Billing Address -->
+                <div style="margin-bottom: 20px;">
+                    <h3>Shipping Address</h3>
+                    <p>
+                        <%= address.house_address %>, <%= address.street_address %>,<br>
+                                <%= address.city %>, <%= address.state %>, <%= address.country %><br>
+                                            ZIP: <%= address.zip_code %>
+                    </p>
+
+                    <% if (order.billingAddress) { %>
+                        <h3>Billing Address</h3>
+                        <p>
+                            <%= order.billingAddress.house_address %>, <%= order.billingAddress.street_address %>,<br>
+                                    <%= order.billingAddress.city %>, <%= order.billingAddress.state %>, <%=
+                                                order.billingAddress.country %><br>
+                                                ZIP: <%= order.billingAddress.zip_code %>
+                        </p>
+                        <% } %>
+                </div>
+
+                <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <h3>Admin Controls</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <select name="status" id="order-status" class="status-selection" style="width: 80%;">
+                            <option value="processing" <%=order.status=='processing' ? 'selected' : '' %>>Processing
+                            </option>
+                            <option value="shipped" <%=order.status=='shipped' ? 'selected' : '' %>>Shipped</option>
+                            <option value="delivered" <%=order.status=='delivered' ? 'selected' : '' %>>Delivered</option>
+                            <option value="cancelled" <%=order.status=='cancelled' ? 'selected' : '' %>>Cancelled</option>
+                        </select>
+
+                        <button class="action-btn action-edit" style="padding: 10px 40px;"
+                            onclick="set_status('<%= order._id %>')"
+                        >
+                            Update Status
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="row" style="margin-top: 30px;">
-            <div class="col" style="gap: 20px;">
-                <h1>User Details</h1>
-                <p><strong>Name : </strong> <%= order.user_id.first_name + ' ' + order.user_id.last_name %></p>
-                <p><strong>Email : </strong> <%= order.user_id.email %></p>
-                <p><strong>Phone : </strong> <%= order.user_id.phone_number %></p>
-                <p><strong>Address : </strong> <%= address.house_address %>,
-                    <%= address.street_address %>,
-                    <%= address.city %>
-                    <%= address.state %>
-                    <%= address.country %>,
-                    ZIP CODE : <%= address.zip_code %></p>
-            </div>
-        </div>
     </div>
-</div>
-<script>
-    const set_status = async (order_id) => {
-        const status = document.getElementById('order-status').value;
-        let data = {status};
-        if (status == "cancelled") {
-            const { value: reason } = await Swal.fire({
-                input: "textarea",
-                inputLabel: "Reason for cancellation",
-                inputPlaceholder: "Type your reason here...",
-                inputAttributes: {
-                "aria-label": "Type your reason here"
-                },
-                showCancelButton: true
-            });
-            if (reason.trim() == "") {
-                return alert_error("Please enter a reason")
+
+    <script>
+        const set_status = async (order_id) => {
+            const status = document.getElementById('order-status').value;
+            let data = { status };
+
+            if (status === "cancelled") {
+                const { value: reason } = await Swal.fire({
+                    input: "textarea",
+                    inputLabel: "Reason for cancellation",
+                    inputPlaceholder: "Type your reason here...",
+                    inputAttributes: { "aria-label": "Type your reason here" },
+                    showCancelButton: true
+                });
+                if (!reason || reason.trim() === "") {
+                    return alert_error("Please enter a reason");
+                }
+                data.reason = reason;
             }
-            data.reason = reason;
-        }
-        const req = await fetch(`/admin/order/${order_id}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams(data),
-        });
-        if (!req.ok) return alert_error("An error has occurred. Please try again.");
-        const res = await req.json();
-        if (res.success) {
-            alert_success(res.message);
-        } else {
-            alert_error(res.message);
-        }
-    };
-</script>
-<%- include('../partials/admin/footer.ejs') %>
+
+            const req = await fetch(`/admin/order/${order_id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(data),
+            });
+
+            if (!req.ok) return alert_error("An error has occurred. Please try again.");
+            const res = await req.json();
+            res.success ? alert_success(res.message) : alert_error(res.message);
+        };
+    </script>
+
+    <%- include('../partials/admin/footer.ejs') %>

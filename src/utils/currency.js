@@ -13,4 +13,6 @@ const parse_currency = (input, decimal) => {
     }).format(amount);
 }
 
-module.exports = { parse_currency };
+const format = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(value);
+
+module.exports = { parse_currency, format };

@@ -4,12 +4,13 @@ const otp_model = require("../../models/otp_model");
 const product_model = require("../../models/product_model");
 const wallet_model = require("../../models/wallet_model");
 const referral_model = require('../../models/referral_model');
+const httpStatus = require("../../utils/httpStatus");
 
 const generate_otp = () => {
     return crypto.randomInt(1000, 9999);
 }
 
-const user_signup = async (req, res) => {
+const userSignup = async (req, res) => {
     const {first_name, last_name, email, password} = req.body;
     try {
         const exists = await user_model.findOne({email: email.toLowerCase()});
@@ -31,7 +32,7 @@ const user_signup = async (req, res) => {
     }
 }
 
-const user_login = async (req, res) => {
+const userLogin = async (req, res) => {
     const {email, password} = req.body;
     try {
         const exists = await user_model.findOne({email: email.toLowerCase()});
@@ -93,7 +94,7 @@ const user_login = async (req, res) => {
 }
 
 
-const user_logout = (req, res) => {
+const userLogout = (req, res) => {
     if (req.session.admin) {
         delete req.session.user;
         res.clearCookie('connect.sid');
@@ -109,7 +110,7 @@ const user_logout = (req, res) => {
 )};
 
 
-const google_login = (req, res) => {
+const googleLogin = (req, res) => {
     try {
         const REDIRECT_URI = `${process.env.DOMAIN}/login/google/auth`;
         const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=profile email`;
@@ -120,7 +121,7 @@ const google_login = (req, res) => {
     }
 }
 
-const auth_google = async (req, res) => {
+const authGoogle = async (req, res) => {
     const REDIRECT_URI = `${process.env.DOMAIN}/login/google/auth`;
     const { code } = req.query;
     const reqs = await fetch("https://oauth2.googleapis.com/token", {
@@ -245,7 +246,7 @@ const auth_google = async (req, res) => {
       }
 }
 
-const get_products = async (req, res) => {
+const getProducts = async (req, res) => {
     try {
         const { search = "" } = req.query;
         const { sort = null, filters = [] } = req.body;
@@ -294,12 +295,12 @@ const get_products = async (req, res) => {
         pipeline.push({ $limit: 25 });
         const products = await product_model.aggregate(pipeline);
 
-        res.json(products);
+        res.status(httpStatus.OK).json(products);
     } catch (err) {
         console.error("Error fetching products:", err);
-        res.status(500).json({ message: "Server Error" });
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server Error" });
     }
 };
 
 
-module.exports = { user_signup, user_login, user_logout, google_login, auth_google, get_products };
+module.exports = { userSignup, userLogin, userLogout, googleLogin, authGoogle, getProducts };

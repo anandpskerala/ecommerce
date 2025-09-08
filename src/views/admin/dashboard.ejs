@@ -73,7 +73,7 @@
 <script>
   let start_date = new Date();
   let end_date = new Date();
-  let filter_type = 'today';
+  let filter_type = 'month';
   let chart;
 
   const get_random_color = () => {
@@ -119,7 +119,6 @@
 
   const plot_sales_data = async () => {
     let raw_data = await get_data_from_server();
-    console.log(raw_data)
 
     if (chart) {
       chart.destroy();

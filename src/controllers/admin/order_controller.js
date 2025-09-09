@@ -6,6 +6,8 @@ const timer = require('../../utils/time');
 const currency = require("../../utils/currency");
 const wallet_model = require('../../models/wallet_model');
 const httpStatus = require("../../utils/httpStatus");
+const time = require('../../utils/time');
+const currency = require('../../utils/currency');
 
 const loadOrders = async (req, res) => {
     return res.render("admin/orders", {
